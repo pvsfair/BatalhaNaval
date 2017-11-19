@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="BatalhaNavalSocketServer:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/BatalhaNavalSocketServer_jar</output-path>
+    <root id="archive" name="BatalhaNavalSocketServer.jar">
+      <element id="module-output" name="BatalhaNavalSocketServer" />
+    </root>
+  </artifact>
+</component>
