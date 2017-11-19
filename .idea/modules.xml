@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/BatalhaNaval.iml" filepath="$PROJECT_DIR$/BatalhaNaval.iml" />
+      <module fileurl="file://$PROJECT_DIR$/BatalhaNavalServer/BatalhaNavalSocketServer.iml" filepath="$PROJECT_DIR$/BatalhaNavalServer/BatalhaNavalSocketServer.iml" />
     </modules>
   </component>
 </project>
