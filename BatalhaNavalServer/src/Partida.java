@@ -14,7 +14,9 @@ public class Partida {
     }
 
     public void setJ2(Jogador j2) {
+        this.codPartida = "=====";
         this.j2 = j2;
+
     }
 
     public String getCodPartida() {

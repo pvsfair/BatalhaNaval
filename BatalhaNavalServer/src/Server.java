@@ -11,6 +11,10 @@ public class Server extends Thread{
 
     private static List<Partida> partidas;
 
+    private Partida partida;
+
+    private Jogador jogador;
+
     private Socket client;
 
     public Server(Socket s){
@@ -20,35 +24,84 @@ public class Server extends Thread{
     @Override
     public void run() {
         System.out.println("Cliente Conectado: " + client.getInetAddress().getHostAddress());
+        boolean listenToMenu = true;
+        while(listenToMenu) {
+            int opt = readIntFromCliente(client);
+            String nomeJogador, roomCode;
+            switch (opt) {
+                case 1:
+                    sendStringToClient(client, "sendName");
+                    nomeJogador = readStringFromCliente(client);
+                    roomCode = generateRoomCode();
+                    this.jogador = new Jogador(client, nomeJogador);
 
-        int opt = readIntFromCliente(client);
+                    this.partida = new Partida(this.jogador, roomCode);
 
-        switch (opt){
-            case 1:
-                sendStringToClient(client, "sendName");
-                String nomeJogador = readStringFromCliente(client);
-                String roomCode = generateRoomCode();
-                Jogador jogador = new Jogador(client, nomeJogador);
+                    partidas.add(this.partida);
 
-                Partida partida = new Partida(jogador,roomCode);
+                    sendStringToClient(client, roomCode);
 
-                partidas.add(partida);
+                    waitForOtherPlayerToJoin(this.partida);
 
-                sendStringToClient(client, roomCode);
-                waitForOtherPlayerToJoin(partida);
-                break;
-            case 2:
+                    sendStringToClient(client, "startMatch");
 
-                break;
-            case 3:
-            default:
-                return;
+                    startGameLoop(client);
+                    break;
+                case 2:
+                    sendStringToClient(client, "sendName");
+                    nomeJogador = readStringFromCliente(client);
+                    boolean matchFound = false;
+                    while (!matchFound) {
+                        roomCode = readStringFromCliente(client);
+                        if (roomCode.equals("listenMenu")) {
+                            break;
+                        }
+                        for (Partida p : partidas) {
+                            if (p.getCodPartida().equals(roomCode)) {
+                                this.jogador = new Jogador(client, nomeJogador);
+                                p.setJ2(this.jogador);
+                                matchFound = true;
+                                this.partida = p;
+                                break;
+                            }
+                        }
+
+                        if (!matchFound) {
+                            sendStringToClient(client, "matchNotFound");
+                        } else {
+                            sendStringToClient(client, "startMatch");
+                            matchFound = true;
+                        }
+                    }
+
+                    if(matchFound)
+                        startGameLoop(client);
+
+                    break;
+                case 3:
+                default:
+                    System.out.println("Desconectando cliente: "+ this.jogador.getNome() + " Com ip: " + client.getInetAddress().getHostAddress());
+                    try {
+                        client.close();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    return;
+            }
         }
 
-        String nomeJogador = readStringFromCliente(client);
+/*        String nomeJogador = readStringFromCliente(client);
         System.out.println("O nome do jogador conectado é: " + nomeJogador);
 
-        sendStringToClient(client,generateRoomCode());
+        sendStringToClient(client,generateRoomCode());*/
+    }
+
+    private void startGameLoop(Socket cliente) {
+        System.out.println("INICIANDO O JOGOOOOOO");
+        boolean jogando = true;
+        while(jogando){
+
+        }
     }
 
     public void waitForOtherPlayerToJoin(Partida partida){

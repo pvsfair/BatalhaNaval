@@ -7,6 +7,10 @@ public class Jogador {
         this.tabuleiro = new Tabuleiro();
     }
 
+    public String getNome() {
+        return nome;
+    }
+
     private String nome;
     private Socket socket;
     private Tabuleiro tabuleiro;

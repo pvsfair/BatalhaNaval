@@ -7,33 +7,74 @@ import java.util.Scanner;
 public class BatalhaNavalCliente {
     public static void main(String[] args) throws InterruptedException {
         /*System.out.println(new Tabuleiro());
+        Thread.sleep(1000);
         System.out.print("\033[H\033[2J");
         System.out.flush();
-        Thread.sleep(1000);
-        System.out.println(new Tabuleiro());
-        */
+        System.out.println(new Tabuleiro());*/
+
         Socket cliente = connect("127.0.0.1",12010);
+        boolean exibirMenu = true;
+        while(exibirMenu) {
 
-        int opt = printMenuAndReadOption();
+            int opt = printMenuAndReadOption();
 
-        sendIntToClient(cliente, opt);
+            sendIntToServer(cliente, opt);
 
-        if(opt == 3){
             clearConsole();
-            System.out.println("FECHANDO O JOGO");
-            return;
-        }else if(opt == 1){
-            if(readStringFromCliente(cliente).equals("sendName")){
-                String nome = readStringFromConsole("Digite o seu nome: ");
-                sendStringToClient(cliente, nome);
-                String roomCode = readStringFromCliente(cliente);
-                System.out.println("Codigo da sala: " + roomCode);
-                waitForGameToStart(cliente);
-                startGameLoop(cliente);
+
+            switch (opt) {
+                case 1:
+                    if (readStringFromServer(cliente).equals("sendName")) {
+                        String nome = readStringFromConsole("Digite o seu nome: ");
+                        sendStringToServer(cliente, nome);
+
+                        String roomCode = readStringFromServer(cliente);
+
+                        System.out.println("Codigo da Partida: " + roomCode);
+
+                        waitForGameToStart(cliente);
+                        startGameLoop(cliente);
+                    }
+                    break;
+                case 2:
+                    if (readStringFromServer(cliente).equals("sendName")) {
+                        String nome = readStringFromConsole("Digite o seu nome: ");
+                        sendStringToServer(cliente, nome);
+                        boolean roomFound = false;
+
+                        while (!roomFound) {
+                            String roomCode = readStringFromConsole("Digite o codigo da Partida ou digite V para voltar ao menu: ", true);
+                            if (roomCode.toUpperCase().equals("V")) {
+                                sendStringToServer(cliente, "listenMenu");
+                                break;
+                            }
+                            sendStringToServer(cliente, roomCode.toUpperCase());
+
+                            switch (readStringFromServer(cliente)) {
+                                case "startMatch":
+                                    roomFound = true;
+                                    break;
+                                case "matchNotFound":
+                                    System.out.println("Nao foi possivel encontrar a partida escolhida\n");
+                                    readStringFromConsole("Pressione enter para digitar novamente o código da sala.");
+                                    break;
+                            }
+                        }
+
+                        if(roomFound){
+                            startGameLoop(cliente);
+                        }
+
+                    }
+                    break;
+                case 3:
+                    clearConsole();
+                    System.out.println("FECHANDO O JOGO");
+                    exibirMenu = false;
+                    return;
             }
         }
-
-        String READ = readStringFromCliente(cliente);
+        String READ = readStringFromServer(cliente);
 
         System.out.println("Conectado na partida de numero: " + READ);
     }
@@ -49,7 +90,7 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static void sendStringToClient(Socket cliente, String msg){
+    public static void sendStringToServer(Socket cliente, String msg){
         try {
             ObjectOutputStream saida = new ObjectOutputStream(cliente.getOutputStream());
             saida.writeUTF(msg);
@@ -59,7 +100,7 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static void sendIntToClient(Socket cliente, int msg){
+    public static void sendIntToServer(Socket cliente, int msg){
         try {
             ObjectOutputStream saida = new ObjectOutputStream(cliente.getOutputStream());
             saida.writeInt(msg);
@@ -69,7 +110,7 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static String readStringFromCliente(Socket cliente){
+    public static String readStringFromServer(Socket cliente){
         try {
             ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
             String ret = entrada.readUTF();
@@ -81,6 +122,7 @@ public class BatalhaNavalCliente {
     }
 
     public static int printMenuAndReadOption(){
+        clearConsole();
         int opt = 0;
         System.out.println("Você se conectou ao servidor, escolha uma das opcoes abaixo:\n" +
                 "1 - Iniciar uma nova partida.\n" +
@@ -110,6 +152,11 @@ public class BatalhaNavalCliente {
         System.out.flush();
     }
 
+    public static String readStringFromConsole(String message, boolean clearConsole){
+        if(clearConsole) clearConsole();
+        return readStringFromConsole(message);
+    }
+
     public static String readStringFromConsole(String message){
         Scanner reader = new Scanner(System.in);
 
@@ -120,11 +167,15 @@ public class BatalhaNavalCliente {
     public static void waitForGameToStart(Socket client){
         String msg;
         do {
-            msg = readStringFromCliente(client);
+            msg = readStringFromServer(client);
         } while (!msg.equals("startMatch"));
     }
 
     public static void startGameLoop(Socket client){
         System.out.println("INICIANDO O JOGOOOOOO");
+        boolean jogando = true;
+        while(jogando){
+
+        }
     }
 }
