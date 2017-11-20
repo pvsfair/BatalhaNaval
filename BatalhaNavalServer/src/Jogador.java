@@ -11,6 +11,20 @@ public class Jogador {
         return nome;
     }
 
+    public Socket getSocket() {
+        return socket;
+    }
+
+    public boolean takeShotAt(int x, int y){
+        return tabuleiro.takeShotAt(x, y);
+    }
+
+    public boolean allShipsDistroyed(){
+        if(tabuleiro.getPedacosDeNavioSemTiro() == 0)
+            return true;
+        return false;
+    }
+
     private String nome;
     private Socket socket;
     private Tabuleiro tabuleiro;

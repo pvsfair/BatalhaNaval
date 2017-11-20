@@ -11,7 +11,6 @@ public class BatalhaNavalCliente {
         System.out.print("\033[H\033[2J");
         System.out.flush();
         System.out.println(new Tabuleiro());*/
-
         Socket cliente = connect();
         while(true) {
 
@@ -167,8 +166,83 @@ public class BatalhaNavalCliente {
     private static void startGameLoop(Socket client){
         System.out.println("INICIANDO O JOGOOOOOO");
         boolean jogando = true;
+        Tabuleiro tabuleiro = new Tabuleiro();
         while(jogando){
+            String isMyTurn = readStringFromServer(client);
+            clearConsole();
+            System.out.println(tabuleiro);
+            switch (isMyTurn){
+                case "yourTurn":
+                    String posTiro = readStringFromConsole("Digite a posicao na qual deseja atirar: ").toUpperCase();
+                    while(!treatPosTiro(posTiro)) {
+                        readStringFromConsole("Tiro invalido, tente novamente (Exemplo: A3)\nPressione enter para tentar novamente");
+                        posTiro = readStringFromConsole("Digite a posicao na qual deseja atirar: ").toUpperCase();
+                    }
+                    sendStringToServer(client, posTiro);
 
+                    String acerto = readStringFromServer(client);
+                    switch (acerto){
+                        case "gotIt":
+                            tabuleiro.shotSent(posTiro, true);
+                            System.out.println("Acertou em cheio!");
+                            break;
+                        case "miss":
+                            tabuleiro.shotSent(posTiro, false);
+                            System.out.println("Tiro caiu na agua.");
+                            break;
+                    }
+
+                    String gameWonOrEndTurn = readStringFromServer(client);
+                    switch (gameWonOrEndTurn){
+                        case "youWin":
+                            System.out.println("VOCE VENCEU!!");
+                            jogando = false;
+                            break;
+                        case "turnEnd":
+                            System.out.println("Fim de turno");
+                            break;
+                    }
+                    break;
+                case "notYourTurn":
+                    System.out.println("Turno do adversario, aguarde enquanto ele atira.");
+                    String shotTaken = readStringFromServer(client);
+
+                    tabuleiro.shotTaken(shotTaken);
+
+                    clearConsole();
+                    System.out.println(tabuleiro);
+
+                    System.out.println("Turno do adversario, aguarde enquanto ele atira.");
+
+                    String gameLostOrEndTurn = readStringFromServer(client);
+                    switch (gameLostOrEndTurn){
+                        case "youLose":
+                            System.out.println("Voce perdeu!!");
+                            jogando = false;
+                            break;
+                        case "turnEnd":
+                            System.out.println("Fim de turno");
+                            break;
+                    }
+                    break;
+            }
         }
+        try {
+            Thread.sleep(500);
+            System.out.println("Fechando o jogo");
+            Thread.sleep(1000);
+            System.exit(0);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static boolean treatPosTiro(String posTiro) {
+        if (posTiro.length() == 2 && Character.isLetter(posTiro.charAt(0)) && Character.isDigit(posTiro.charAt(1))) {
+            if (posTiro.charAt(0) >= 'A' && posTiro.charAt(0) <= 'J') {
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+@SuppressWarnings("WeakerAccess")
 public class Server extends Thread{
 
     private static List<Partida> partidas;
@@ -45,8 +46,8 @@ public class Server extends Thread{
 
                     sendStringToClient(client, "startMatch");
 
-                    startGameLoop(client);
-                    break;
+                    startGameLoop();
+                    return;
                 case 2:
                     sendStringToClient(client, "sendName");
                     nomeJogador = readStringFromCliente(client);
@@ -74,13 +75,18 @@ public class Server extends Thread{
                         }
                     }
 
-                    if(matchFound)
-                        startGameLoop(client);
-
+                    if(matchFound) {
+//                        startGameLoop();
+                        return;
+                    }
                     break;
                 case 3:
                 default:
-                    System.out.println("Desconectando cliente: "+ this.jogador.getNome() + " Com ip: " + client.getInetAddress().getHostAddress());
+                    if(this.jogador != null) {
+                        System.out.println("Desconectando cliente: " + this.jogador.getNome() + " Com ip: " + client.getInetAddress().getHostAddress());
+                    }else{
+                        System.out.println("Desconectando cliente: " + client.getInetAddress().getHostAddress());
+                    }
                     try {
                         client.close();
                     } catch (IOException e) {
@@ -96,12 +102,14 @@ public class Server extends Thread{
         sendStringToClient(client,generateRoomCode());*/
     }
 
-    private void startGameLoop(Socket cliente) {
-        System.out.println("INICIANDO O JOGOOOOOO");
-        boolean jogando = true;
-        while(jogando){
-
+    private void startGameLoop() {
+        if (!this.partida.isThreadRunning()) {
+            System.out.println("INICIANDO O JOGOOOOOO");
+            this.partida.setThreadRunning(true);
+            Thread t = new Thread(this.partida);
+            t.start();
         }
+        System.out.println("A partida já foi iniciada");
     }
 
     public void waitForOtherPlayerToJoin(Partida partida){
@@ -117,6 +125,7 @@ public class Server extends Thread{
     public static void main(String[] args) {
         ServerSocket servidor = createServerSocket(12010);
         partidas = new ArrayList<>();
+        //noinspection InfiniteLoopStatement
         while(true){
             Server handler = new Server(serverAccept(servidor));
             Thread t = new Thread(handler);
@@ -161,8 +170,7 @@ public class Server extends Thread{
     public static String readStringFromCliente(Socket cliente){
         try {
             ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
-            String ret = entrada.readUTF();
-            return ret;
+            return entrada.readUTF();
         } catch (IOException e) {
             System.out.println("Erro: " + e.getMessage());
             return "";
@@ -180,13 +188,12 @@ public class Server extends Thread{
     }
 
     public static String generateRoomCode(){
-
         Random random = new Random();
-        String codPartida = "";
+        StringBuilder codPartida = new StringBuilder();
         String chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         for(int i = 0; i < 5; i++){
-            codPartida += chars.charAt(random.nextInt(chars.length()));
+            codPartida.append(chars.charAt(random.nextInt(chars.length())));
         }
-        return codPartida;
+        return codPartida.toString();
     }
 }
