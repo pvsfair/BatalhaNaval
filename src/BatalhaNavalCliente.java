@@ -12,9 +12,8 @@ public class BatalhaNavalCliente {
         System.out.flush();
         System.out.println(new Tabuleiro());*/
 
-        Socket cliente = connect("127.0.0.1",12010);
-        boolean exibirMenu = true;
-        while(exibirMenu) {
+        Socket cliente = connect();
+        while(true) {
 
             int opt = printMenuAndReadOption();
 
@@ -70,19 +69,14 @@ public class BatalhaNavalCliente {
                 case 3:
                     clearConsole();
                     System.out.println("FECHANDO O JOGO");
-                    exibirMenu = false;
                     return;
             }
         }
-        String READ = readStringFromServer(cliente);
-
-        System.out.println("Conectado na partida de numero: " + READ);
     }
 
-    public static Socket connect(String host, int porta){
+    private static Socket connect(){
         try{
-            Socket cliente = new Socket("127.0.0.1",12010);
-            return cliente;
+            return new Socket("127.0.0.1",12010);
         }
         catch (Exception e){
             System.out.println("Erro: " + e.getMessage());
@@ -90,7 +84,7 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static void sendStringToServer(Socket cliente, String msg){
+    private static void sendStringToServer(Socket cliente, String msg){
         try {
             ObjectOutputStream saida = new ObjectOutputStream(cliente.getOutputStream());
             saida.writeUTF(msg);
@@ -100,7 +94,7 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static void sendIntToServer(Socket cliente, int msg){
+    private static void sendIntToServer(Socket cliente, int msg){
         try {
             ObjectOutputStream saida = new ObjectOutputStream(cliente.getOutputStream());
             saida.writeInt(msg);
@@ -110,20 +104,19 @@ public class BatalhaNavalCliente {
         }
     }
 
-    public static String readStringFromServer(Socket cliente){
+    private static String readStringFromServer(Socket cliente){
         try {
             ObjectInputStream entrada = new ObjectInputStream(cliente.getInputStream());
-            String ret = entrada.readUTF();
-            return ret;
+            return entrada.readUTF();
         } catch (IOException e) {
             System.out.println("Erro: " + e.getMessage());
             return "";
         }
     }
 
-    public static int printMenuAndReadOption(){
+    private static int printMenuAndReadOption(){
         clearConsole();
-        int opt = 0;
+        int opt;
         System.out.println("Você se conectou ao servidor, escolha uma das opcoes abaixo:\n" +
                 "1 - Iniciar uma nova partida.\n" +
                 "2 - Se juntar a uma partida existente.\n" +
@@ -147,31 +140,31 @@ public class BatalhaNavalCliente {
         return opt;
     }
 
-    public static void clearConsole(){
+    private static void clearConsole(){
         System.out.print("\033[H\033[2J");
         System.out.flush();
     }
 
-    public static String readStringFromConsole(String message, boolean clearConsole){
+    private static String readStringFromConsole(String message, boolean clearConsole){
         if(clearConsole) clearConsole();
         return readStringFromConsole(message);
     }
 
-    public static String readStringFromConsole(String message){
+    private static String readStringFromConsole(String message){
         Scanner reader = new Scanner(System.in);
 
         System.out.println(message);
         return reader.nextLine();
     }
 
-    public static void waitForGameToStart(Socket client){
+    private static void waitForGameToStart(Socket client){
         String msg;
         do {
             msg = readStringFromServer(client);
         } while (!msg.equals("startMatch"));
     }
 
-    public static void startGameLoop(Socket client){
+    private static void startGameLoop(Socket client){
         System.out.println("INICIANDO O JOGOOOOOO");
         boolean jogando = true;
         while(jogando){
