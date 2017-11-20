@@ -7,6 +7,16 @@ public class Navio {
         Rotacao = rotacao;
     }
 
+    @Override
+    public String toString() {
+        return "Navio{" +
+                "PosX=" + PosX +
+                ", PosY=" + PosY +
+                ", Tamanho=" + Tamanho +
+                ", Rotacao=" + Rotacao +
+                '}';
+    }
+
     public int getPosX() {
         return PosX;
     }

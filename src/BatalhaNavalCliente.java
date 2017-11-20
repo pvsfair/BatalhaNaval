@@ -2,6 +2,8 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
 
 public class BatalhaNavalCliente {
@@ -121,10 +123,8 @@ public class BatalhaNavalCliente {
                 "2 - Se juntar a uma partida existente.\n" +
                 "3 - Fechar o jogo.");
 
-        Scanner reader = new Scanner(System.in);
+        opt = readIntFromConsole("Escolha uma opcao: ");
 
-        System.out.println("Escolha uma opcao: ");
-        opt = reader.nextInt();
 
         while(opt < 1 || opt > 3) {
             clearConsole();
@@ -133,8 +133,7 @@ public class BatalhaNavalCliente {
                     "2 - Se juntar a uma partida existente.\n" +
                     "3 - Fechar o jogo.");
 
-            System.out.println("Escolha uma opcao: ");
-            opt = reader.nextInt();
+            opt = readIntFromConsole("Escolha uma opcao: ");
         }
         return opt;
     }
@@ -156,6 +155,13 @@ public class BatalhaNavalCliente {
         return reader.nextLine();
     }
 
+    private static int readIntFromConsole(String message){
+        Scanner reader = new Scanner(System.in);
+
+        System.out.println(message);
+        return reader.nextInt();
+    }
+
     private static void waitForGameToStart(Socket client){
         String msg;
         do {
@@ -163,10 +169,130 @@ public class BatalhaNavalCliente {
         } while (!msg.equals("startMatch"));
     }
 
-    private static void startGameLoop(Socket client){
-        System.out.println("INICIANDO O JOGOOOOOO");
-        boolean jogando = true;
+    private static Tabuleiro posShips(Socket client){
         Tabuleiro tabuleiro = new Tabuleiro();
+        List<Navio> navios = new ArrayList<>();
+
+        navios.add(new Navio(0,0,5,0));
+        navios.add(new Navio(0,0,4,0));
+        navios.add(new Navio(0,0,4,0));
+        navios.add(new Navio(0,0,3,0));
+        navios.add(new Navio(0,0,3,0));
+        navios.add(new Navio(0,0,3,0));
+        navios.add(new Navio(0,0,2,0));
+        navios.add(new Navio(0,0,2,0));
+        navios.add(new Navio(0,0,2,0));
+        navios.add(new Navio(0,0,2,0));
+
+        while (!navios.isEmpty()) {
+            clearConsole();
+            System.out.println("Posicionando frota");
+            System.out.println(tabuleiro.getMyTabuleiro());
+            Navio n = navios.remove(0);
+            System.out.println("Posicione o seu navio de tamanho " + n.getTamanho());
+            System.out.println("Informe a celula em que ele deve ser posicionado e a direcao\n" +
+                                "para a qual ele sera rotacionado (0:esquerda | 1:baixo)");
+            String posNavio = "";
+            int rotNavio = 0;
+            boolean shipOK = false;
+
+            posNavio = readStringFromConsole("Informe a posicao (Exemplo: A3)").toUpperCase();
+            while (!treatPosTiro(posNavio)) {
+                System.out.println("Posicao incorreta ou indisponivel");
+                posNavio = readStringFromConsole("Informe a posicao novamente").toUpperCase();
+            }
+
+            rotNavio = readIntFromConsole("Informe a rotacao");
+            while (rotNavio < 0 || rotNavio > 1) {
+                System.out.println("Rotacao incorreta");
+                rotNavio = readIntFromConsole("Informe a rotacao novamente (Exemplo: 0)");
+            }
+            shipOK = checkShipOK(posNavio, rotNavio, n.getTamanho(), tabuleiro);
+
+
+            while(!shipOK) {
+                System.out.println("Posicao incorreta ou indisponivel");
+                posNavio = readStringFromConsole("Informe uma nova posicao (Exemplo: A3)").toUpperCase();
+                while (!treatPosTiro(posNavio)) {
+                    posNavio = readStringFromConsole("Informe a posicao novamente").toUpperCase();
+                }
+
+                rotNavio = readIntFromConsole("Informe a rotacao");
+                while (rotNavio < 0 || rotNavio > 1) {
+                    System.out.println("Rotacao incorreta");
+                    rotNavio = readIntFromConsole("Informe a rotacao novamente (Exemplo: 0)");
+                }
+                shipOK = checkShipOK(posNavio, rotNavio, n.getTamanho(), tabuleiro);
+            }
+            tabuleiro.addNavio(n, posNavio, rotNavio);
+        }
+        return tabuleiro;
+    }
+
+    private static boolean checkShipOK(String pos, int rot, int length, Tabuleiro tabuleiro){
+        int posI = Tabuleiro.convertPosToXY(pos);
+        int x = posI / 10;
+        int y = posI % 10;
+        if(x > 9 || x < 0 || y > 9 || y < 0) return false;
+
+
+        for(int l = 0; l < length; l++) {
+            if(rot == 0) {
+                if(!posAvailable(x + l, y, tabuleiro))
+                    return false;
+            }else if(rot == 1) {
+                if (!posAvailable(x, y + l, tabuleiro))
+                    return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean posAvailable(int x, int y, Tabuleiro tabuleiro){
+        if(x > 9 || x < 0 || y > 9 || y < 0) return false;
+        for (Navio n : tabuleiro.getNavios()) {
+            if(n.getRotacao() == 0){
+                if(y == n.getPosY() && x >= n.getPosX() && x < n.getPosX() + n.getTamanho()){
+                    return false;
+                }
+            }else if(n.getRotacao() == 1){
+                if(x == n.getPosX() && y >= n.getPosY() && y < n.getPosY() + n.getTamanho()){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean posAvailable(String pos, Tabuleiro tabuleiro){
+        int posI = Tabuleiro.convertPosToXY(pos);
+        int x = posI / 10;
+        int y = posI % 10;
+        if(x > 9 || x < 0 || y > 9 || y < 0) return false;
+        return posAvailable(x, y, tabuleiro);
+    }
+
+    private static void startGameLoop(Socket client){
+        System.out.println("Posicionar os navios");
+        Tabuleiro tabuleiro = posShips(client);
+        System.out.println("Esperando o outro jogador");
+
+        // Register Board routine
+        if(readStringFromServer(client).equals("wait")){
+            //noinspection StatementWithEmptyBody
+            while(readStringFromServer(client).equals("wait"));
+        }
+        //register board on server
+        for(Navio n: tabuleiro.getNavios()){
+            sendStringToServer(client, n.getPosX() + ":" + n.getPosY() + ":" + n.getTamanho() + ":" + n.getRotacao());
+        }
+
+        sendStringToServer(client, "boardRegisterEnd");
+        // Register Board routine END
+
+        System.out.println("INICIANDO O JOGO");
+        boolean jogando = true;
+
         while(jogando){
             String isMyTurn = readStringFromServer(client);
             clearConsole();
@@ -238,9 +364,11 @@ public class BatalhaNavalCliente {
     }
 
     private static boolean treatPosTiro(String posTiro) {
-        if (posTiro.length() == 2 && Character.isLetter(posTiro.charAt(0)) && Character.isDigit(posTiro.charAt(1))) {
-            if (posTiro.charAt(0) >= 'A' && posTiro.charAt(0) <= 'J') {
-                return true;
+        if(posTiro.length() == 2) {
+            if (Character.isLetter(posTiro.charAt(0)) && Character.isDigit(posTiro.charAt(1))) {
+                if (posTiro.charAt(0) >= 'A' && posTiro.charAt(0) <= 'J') {
+                    return true;
+                }
             }
         }
         return false;

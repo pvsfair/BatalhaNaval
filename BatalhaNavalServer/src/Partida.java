@@ -3,6 +3,34 @@ public class Partida extends Thread {
 
     @Override
     public void run() {
+
+        //TODO: Montando tabuleiros
+        boolean registeringJ1 = true;
+        sendMessageToJ1("registerBoards");
+        sendMessageToJ2("wait");
+        while(registeringJ1){
+            String msg = listenFromJ1();
+            if(msg.equals("boardRegisterEnd")) {
+                registeringJ1 = false;
+                break;
+            }else{
+                String[] navioInfo = msg.split(":");
+                this.j1.addShip(new Navio(Integer.parseInt(navioInfo[0]), Integer.parseInt(navioInfo[1]),
+                                          Integer.parseInt(navioInfo[2]), Integer.parseInt(navioInfo[3])));
+            }
+        }
+        sendMessageToJ2("registerBoards");
+        while (!registeringJ1){
+            String msg = listenFromJ2();
+            if(msg.equals("boardRegisterEnd")) {
+                break;
+            }else{
+                String[] navioInfo = msg.split(":");
+                this.j2.addShip(new Navio(Integer.parseInt(navioInfo[0]), Integer.parseInt(navioInfo[1]),
+                        Integer.parseInt(navioInfo[2]), Integer.parseInt(navioInfo[3])));
+            }
+        }
+
         boolean isJ1Turn = true;
         boolean isGameOver = false;
 

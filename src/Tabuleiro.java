@@ -6,16 +6,16 @@ public class Tabuleiro {
     public Tabuleiro() {
         navios = new ArrayList<>();
 
-        navios.add(new Navio(1,2,5,0));
-        navios.add(new Navio(2,4,4,1));
-        navios.add(new Navio(7,0,4,1));
-        navios.add(new Navio(4,4,3,0));
-        navios.add(new Navio(5,6,3,1));
-        navios.add(new Navio(9,3,3,1));
-        navios.add(new Navio(0,0,2,0));
-        navios.add(new Navio(4,0,2,0));
-        navios.add(new Navio(0,9,2,0));
-        navios.add(new Navio(7,6,2,0));
+//        navios.add(new Navio(1,2,5,0));
+//        navios.add(new Navio(2,4,4,1));
+//        navios.add(new Navio(7,0,4,1));
+//        navios.add(new Navio(4,4,3,0));
+//        navios.add(new Navio(5,6,3,1));
+//        navios.add(new Navio(9,3,3,1));
+//        navios.add(new Navio(0,0,2,0));
+//        navios.add(new Navio(4,0,2,0));
+//        navios.add(new Navio(0,9,2,0));
+//        navios.add(new Navio(7,6,2,0));
 
         tirosRecebidos = new ArrayList<>();
 
@@ -44,6 +44,19 @@ public class Tabuleiro {
         }
     }
 
+    public void addNavio(Navio navio, String pos, int rotacao){
+        int posI = convertPosToXY(pos);
+        int x = posI / 10;
+        int y = posI % 10;
+
+        navio.setPosX(x);
+        navio.setPosY(y);
+
+        navio.setRotacao(rotacao);
+
+        navios.add(navio);
+    }
+
     public void shotSent(String pos, boolean acerto){
         int posI = convertPosToXY(pos);
         int x = posI / 10;
@@ -69,6 +82,70 @@ public class Tabuleiro {
             }
         }
         tirosRecebidos.set((y*10) + x, 1);
+    }
+
+    public List<Navio> getNavios() {
+        return navios;
+    }
+
+    public String getMyTabuleiro(){
+
+        List<String> meuTabuleiro = new ArrayList<>();
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        meuTabuleiro.add("░│░│░│░│░│░│░│░│░│░│");
+        for (Navio n : navios) {
+            switch (n.getRotacao()){
+                case 0: // Direita
+                    for(int i = n.getPosX() * 2; i < (n.getPosX() + n.getTamanho()) * 2; i += 2){
+                        char[] chars = meuTabuleiro.get(n.getPosY()).toCharArray();// .charAt(i);
+                        switch(tirosRecebidos.get((n.getPosY() * 10) + (i / 2))){
+                            case 0:
+                                chars[i] = 'N';
+                                break;
+                            case 1:
+                                chars[i] = 'a';
+                                break;
+                            case 2:
+                                chars[i] = 'D';
+                                break;
+                        }
+                        meuTabuleiro.set(n.getPosY(), new String(chars));
+                    }
+                    break;
+                case 1: // Baixo
+                    for(int i = n.getPosY(); i < n.getPosY() + n.getTamanho(); i++){
+                        char[] chars = meuTabuleiro.get(i).toCharArray();// .charAt(n.getPosX());
+                        switch(tirosRecebidos.get((i * 10) + n.getPosX())){
+                            case 0:
+                                chars[n.getPosX() * 2] = 'N';
+                                break;
+                            case 1:
+                                chars[n.getPosX() * 2] = 'a';
+                                break;
+                            case 2:
+                                chars[n.getPosX() * 2] = 'D';
+                                break;
+                        }
+                        meuTabuleiro.set(i, new String(chars));
+                    }
+                    break;
+            }
+        }
+        String ret = " \033[4m A B C D E F G H I J \033[0m\n";
+
+        for (int i = 0; i < meuTabuleiro.size(); i++) {
+            ret += i + "\033[4m│" + meuTabuleiro.get(i) + "\033[0m\n";
+        }
+        ret += "\033[0m";
+        return ret;
     }
 
     @Override
@@ -160,7 +237,7 @@ public class Tabuleiro {
         return ret;
     }
 
-    private static int convertPosToXY(String pos){
+    public static int convertPosToXY(String pos){
         int x;
         int y = Integer.parseInt("" + pos.charAt(1));
         char xC = pos.charAt(0);

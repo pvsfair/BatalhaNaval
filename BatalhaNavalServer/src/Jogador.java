@@ -25,6 +25,11 @@ public class Jogador {
         return false;
     }
 
+    public void addShip(Navio navio){
+        System.out.println(navio);
+        tabuleiro.addNavio(navio);
+    }
+
     private String nome;
     private Socket socket;
     private Tabuleiro tabuleiro;
