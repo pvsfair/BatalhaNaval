@@ -137,7 +137,7 @@ public class Server extends Thread{
         try{
             // Instancia o Server Socket ouvindo na porta @porta
             ServerSocket servidor = new ServerSocket(porta);
-            System.out.println("Servidor ouvindo na porta " + porta);
+            System.out.println("servidor ouvindo na porta " + porta);
             return servidor;
         }
         catch (Exception e){

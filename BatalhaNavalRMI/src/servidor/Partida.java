@@ -1,8 +1,24 @@
+package servidor;
+
+import shared.Jogador;
+
 @SuppressWarnings("WeakerAccess")
 public class Partida extends Thread {
 
+    private Jogador j1;
+    private Jogador j2;
+    private String codPartida;
+    private boolean threadRunning;
+
+    public Partida(Jogador j1, String codPartida) {
+        this.j1 = j1;
+        this.j2 = null;
+        this.codPartida = codPartida;
+    }
+
     @Override
     public void run() {
+
         boolean registeringJ1 = true;
         sendMessageToJ1("registerBoards");
         sendMessageToJ2("wait");
@@ -108,19 +124,21 @@ public class Partida extends Thread {
     }
 
     private void sendMessageToJ1(String message){
-        Server.sendStringToClient(j1.getSocket(), message);
+//        Server.sendStringToClient(j1.getSocket(), message);
     }
 
     private void sendMessageToJ2(String message){
-        Server.sendStringToClient(j2.getSocket(), message);
+//        Server.sendStringToClient(j2.getSocket(), message);
     }
 
     private String listenFromJ1(){
-        return Server.readStringFromCliente(j1.getSocket());
+//        return Server.readStringFromCliente(j1.getSocket());
+        return null;
     }
 
     private String listenFromJ2(){
-        return Server.readStringFromCliente(j2.getSocket());
+//        return Server.readStringFromCliente(j2.getSocket());
+        return null;
     }
 
     private boolean shootJ1(String pos){
@@ -205,12 +223,6 @@ public class Partida extends Thread {
         return j2.takeShotAt(x, y);
     }
 
-    public Partida(Jogador j1, String codPartida) {
-        this.j1 = j1;
-        this.j2 = null;
-        this.codPartida = codPartida;
-    }
-
     public Jogador getJ1() {
         return j1;
     }
@@ -237,8 +249,18 @@ public class Partida extends Thread {
         this.threadRunning = threadRunning;
     }
 
-    private Jogador j1;
-    private Jogador j2;
-    private String codPartida;
-    private boolean threadRunning;
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Partida partida = (Partida) o;
+
+        return getCodPartida().equals(partida.getCodPartida());
+    }
+
+    @Override
+    public int hashCode() {
+        return getCodPartida().hashCode();
+    }
 }
