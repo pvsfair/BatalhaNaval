@@ -1,9 +1,10 @@
 package servidor;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Tabuleiro {
+public class Tabuleiro implements Serializable {
 
     public Tabuleiro() {
         navios = new ArrayList<>();
@@ -46,7 +47,7 @@ public class Tabuleiro {
     public void addNavio(Navio navio){
         navios.add(navio);
         pedacosDeNavioSemTiro += navio.getTamanho();
-        System.out.println(pedacosDeNavioSemTiro);
+        //System.out.println(pedacosDeNavioSemTiro);
     }
 
     public int getPedacosDeNavioSemTiro() {

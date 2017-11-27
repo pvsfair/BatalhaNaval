@@ -8,7 +8,7 @@ public class Main {
     public static void main(String[] args) throws RemoteException, MalformedURLException {
         Gestor gestor = new Gestor();
 
-        Naming.rebind("//localhost/msg", gestor);
+        Naming.rebind("//localhost/msg/a", gestor);
 
     }
 }

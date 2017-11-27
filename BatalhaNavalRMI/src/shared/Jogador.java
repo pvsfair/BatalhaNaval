@@ -3,13 +3,25 @@ package shared;
 import servidor.Navio;
 import servidor.Tabuleiro;
 
-public class Jogador {
+import java.io.Serializable;
+
+public class Jogador implements Serializable{
     private String nome;
     private Tabuleiro tabuleiro;
+    private boolean ready;
 
     public Jogador(String nome) {
         this.nome = nome;
         this.tabuleiro = new Tabuleiro();
+        ready = false;
+    }
+
+    public boolean isReady(){
+        return ready;
+    }
+
+    public void setReady(boolean ready){
+        this.ready = ready;
     }
 
     public String getNome() {
@@ -27,7 +39,7 @@ public class Jogador {
     }
 
     public void addShip(Navio navio) {
-        System.out.println(navio);
+        //System.out.println(navio);
         tabuleiro.addNavio(navio);
     }
 

@@ -191,7 +191,7 @@ public class BatalhaNavalCliente {
             Navio n = navios.remove(0);
             System.out.println("Posicione o seu navio de tamanho " + n.getTamanho());
             System.out.println("Informe a celula em que ele deve ser posicionado e a direcao\n" +
-                                "para a qual ele sera rotacionado (0:esquerda | 1:baixo)");
+                    "para a qual ele sera rotacionado (0:esquerda | 1:baixo)");
             String posNavio = "";
             int rotNavio = 0;
             boolean shipOK = false;

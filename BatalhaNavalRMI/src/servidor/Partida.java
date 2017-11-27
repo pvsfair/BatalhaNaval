@@ -2,49 +2,31 @@ package servidor;
 
 import shared.Jogador;
 
-@SuppressWarnings("WeakerAccess")
-public class Partida extends Thread {
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
+
+public class Partida extends UnicastRemoteObject {
 
     private Jogador j1;
     private Jogador j2;
     private String codPartida;
-    private boolean threadRunning;
 
-    public Partida(Jogador j1, String codPartida) {
+    private String shot = "";
+
+    private boolean isJ1Turn = true;
+    private boolean isGameOver = false;
+
+    public Partida(Jogador j1, String codPartida) throws RemoteException {
+        super();
         this.j1 = j1;
         this.j2 = null;
         this.codPartida = codPartida;
     }
 
-    @Override
     public void run() {
-
-        boolean registeringJ1 = true;
-        sendMessageToJ1("registerBoards");
-        sendMessageToJ2("wait");
-        while(registeringJ1){
-            String msg = listenFromJ1();
-            if(msg.equals("boardRegisterEnd")) {
-                registeringJ1 = false;
-                break;
-            }else{
-                String[] navioInfo = msg.split(":");
-                this.j1.addShip(new Navio(Integer.parseInt(navioInfo[0]), Integer.parseInt(navioInfo[1]),
-                                          Integer.parseInt(navioInfo[2]), Integer.parseInt(navioInfo[3])));
-            }
-        }
-        sendMessageToJ2("registerBoards");
-        while (!registeringJ1){
-            String msg = listenFromJ2();
-            if(msg.equals("boardRegisterEnd")) {
-                break;
-            }else{
-                String[] navioInfo = msg.split(":");
-                this.j2.addShip(new Navio(Integer.parseInt(navioInfo[0]), Integer.parseInt(navioInfo[1]),
-                        Integer.parseInt(navioInfo[2]), Integer.parseInt(navioInfo[3])));
-            }
-        }
-
         boolean isJ1Turn = true;
         boolean isGameOver = false;
 
@@ -55,6 +37,7 @@ public class Partida extends Thread {
                 sendMessageToJ1("yourTurn");
                 sendMessageToJ2("notYourTurn");
 
+                // Tiro
                 String posTiro = listenFromJ1();
 
                 boolean acerto = shootJ2(posTiro);
@@ -66,6 +49,7 @@ public class Partida extends Thread {
                     sendMessageToJ1("miss");
                     missedShot = true;
                 }
+                //fim tiro
 
                 sendMessageToJ2(posTiro);
 
@@ -232,21 +216,13 @@ public class Partida extends Thread {
     }
 
     public void setJ2(Jogador j2) {
-        this.codPartida = "=====";
+        this.codPartida += "=";
         this.j2 = j2;
 
     }
 
     public String getCodPartida() {
         return codPartida;
-    }
-
-    public boolean isThreadRunning() {
-        return threadRunning;
-    }
-
-    public void setThreadRunning(boolean threadRunning) {
-        this.threadRunning = threadRunning;
     }
 
     @Override
@@ -262,5 +238,79 @@ public class Partida extends Thread {
     @Override
     public int hashCode() {
         return getCodPartida().hashCode();
+    }
+
+    public boolean isMyTurn(Jogador jogador) throws RemoteException {
+        return (this.j1.equals(jogador) && isJ1Turn) || (this.j2.equals(jogador) && !isJ1Turn);
+    }
+
+    public boolean shotAt(Jogador jogador, String posTiro) throws RemoteException {
+        shot += posTiro;
+        boolean acerto = false;
+        System.out.println("waiting: " + shot);
+        if(isJogadorJ1(jogador)){
+            acerto = shootJ2(posTiro);
+        }
+        else{
+            acerto = shootJ1(posTiro);
+        }
+        if(!acerto)
+            isJ1Turn = !isJ1Turn;
+        else {
+            if(this.iWon(jogador)){
+                isJ1Turn = !isJ1Turn;
+                return acerto;
+            }
+            shot += ':';
+        }
+        return acerto;
+    }
+
+    public String shotTaken(Jogador jogador) throws RemoteException {
+        String s = shot;
+        shot = "";
+        return s;
+    }
+
+    public boolean iLost(Jogador jogador) throws RemoteException {
+        if(isJogadorJ1(jogador)) {
+            boolean j1lost = j1.allShipsDistroyed();
+
+            if (j1lost) {
+                isGameOver = true;
+            }
+            return j1lost;
+        }else{
+            boolean j2lost = j2.allShipsDistroyed();
+
+            if (j2lost) {
+                isGameOver = true;
+            }
+            return j2lost;
+        }
+    }
+
+    public boolean iWon(Jogador jogador) throws RemoteException {
+        if(isJogadorJ1(jogador)) {
+            boolean j1won = j2.allShipsDistroyed();
+            System.out.println("Check Victory: " + j1won);
+
+            if (j1won) {
+                isGameOver = true;
+            }
+            return j1won;
+        }else{
+            boolean j2won = j1.allShipsDistroyed();
+            System.out.println("Check Victory: " + j2won);
+
+            if (j2won) {
+                isGameOver = true;
+            }
+            return j2won;
+        }
+    }
+
+    private boolean isJogadorJ1(Jogador jogador){
+        return (this.j1.equals(jogador));
     }
 }

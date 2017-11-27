@@ -8,7 +8,7 @@ import java.rmi.RemoteException;
 public class Main {
 
     public static void main(String[] args) throws RemoteException, NotBoundException, MalformedURLException {
-        Mensageiro gerente = (Mensageiro) Naming.lookup("//localhost/msg");
+        Mensageiro gerente = (Mensageiro) Naming.lookup("//localhost/msg/a");
 
         System.out.println(gerente.hello("FAUSTOPASSO"));
 
