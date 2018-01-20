@@ -249,9 +249,11 @@ public class Partida extends UnicastRemoteObject {
         boolean acerto = false;
         System.out.println("waiting: " + shot);
         if(isJogadorJ1(jogador)){
+            if(!isJ1Turn) return false;
             acerto = shootJ2(posTiro);
         }
         else{
+            if(isJ1Turn) return true;
             acerto = shootJ1(posTiro);
         }
         if(!acerto)
